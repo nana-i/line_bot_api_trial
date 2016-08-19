@@ -5,6 +5,7 @@ error_log("callback start.");
 $channel_id = "アカウントのチャネルID";
 $channel_secret = "アカウントのシークレット";
 $mid = "アカウントのMID";
+$user_local_bot_key = "ユーザローカルBOTのkey";
 
 // メッセージ受信
 $json_string = file_get_contents('php://input');
@@ -36,8 +37,19 @@ if ($content_type <> 1) {
         $send_text = "たまにはggrks";
     }
 } else { 
-    // とりあえずおうむ返し
-    $send_text = $text."ですね";
+    // ユーザーローカルBOT
+    $curl = curl_init("https://chatbot-api.userlocal.jp/api/chat");
+    $params = [
+        "message"=>$text,
+        "key"=>$user_local_bot_key
+    ];
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    $bot_json = curl_exec($curl);
+    $bot_res = json_decode($bot_json);
+    if (!empty($bot_res) && $bot_res->status == "success" ) {
+        $send_text = $bot_res->result;
+    }
 }
 
 $post_object = array(
